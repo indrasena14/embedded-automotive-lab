@@ -1,6 +1,6 @@
-﻿# Hardware Documents
+# Hardware Documents
 
-Official ST documents for both boards, stored in the folders below.
+Official ST documents for both boards, stored in the folders below. Files are named `<doc number>-<subject>-<type>.pdf`; keep that pattern for new downloads.
 
 > PDFs are **git-ignored**. They are ST's copyrighted documents, and some are very large (RM0457 is 122 MB). This page and the folders are tracked; the PDFs stay on this laptop. To fetch them again on a new machine, use the links below.
 
@@ -8,16 +8,15 @@ Official ST documents for both boards, stored in the folders below.
 
 | Document | File | Source |
 |---|---|---|
-| **Board user manual** (UM2679) | `um2679-discovery-kit-with-stm32h735ig-mcu-stmicroelectronics.pdf` | [st.com](https://www.st.com/resource/en/user_manual/um2679-discovery-kit-with-stm32h735ig-mcu-stmicroelectronics.pdf) |
-| **Board schematic** (MB1520 rev C03) | `mb1520-h735i-c03-schematic.pdf` | [st.com](https://st.com/resource/en/schematic_pack/mb1520-h735i-c03-schematic.pdf) |
-| **MCU datasheet** (DS13312 Rev 4, STM32H735xG) | `DS_stm32h735ig.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
-| **MCU reference manual** (RM0468) | `rm0468-stm32h723733-stm32h725735-and-stm32h730-value-line-advanced-armbased-32bit-mcus-stmicroelectronics.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
-| **Errata sheet** (ES0491) | `es0491-stm32h72xx73xx-device-errata-stmicroelectronics.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
-| **Cortex-M7 programming manual** (PM0253) | `pm0253-stm32f7-series-and-stm32h7-series-cortexm7-processor-programming-manual-stmicroelectronics.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
-| Safety manual, single-core H7 (UM2331) | `um2331-stm32h7-singlecore-series-safety-manual-stmicroelectronics.pdf` | Functional safety; later reading |
-| Self-test library guide (UM3252) | `um3252-stm32h7-series-ulcsaiec-...-selftest-library-user-guide-stmicroelectronics.pdf` | Functional safety; later reading |
-| Functional safety packages overview | `stm32_stm8_functional-safety-packages.pdf` | Functional safety; later reading |
-| Safety manual, dual-core H7 (UM2840) | `um2840-stm32h7-dualcore-series-safety-manual-stmicroelectronics.pdf` | ⚠️ Not applicable: the H735 is single-core, so use UM2331 |
+| **Board user manual** (UM2679) | `UM2679-STM32H735G-DK-user-manual.pdf` | [st.com](https://www.st.com/resource/en/user_manual/um2679-discovery-kit-with-stm32h735ig-mcu-stmicroelectronics.pdf) |
+| **Board schematic** (MB1520 rev C03) | `MB1520-C03-STM32H735G-DK-schematic.pdf` | [st.com](https://st.com/resource/en/schematic_pack/mb1520-h735i-c03-schematic.pdf) |
+| **MCU datasheet** (DS13312 Rev 4, STM32H735xG) | `DS13312-STM32H735xG-datasheet.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
+| **MCU reference manual** (RM0468) | `RM0468-STM32H723-735-reference-manual.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
+| **Errata sheet** (ES0491) | `ES0491-STM32H72x-73x-errata.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
+| **Cortex-M7 programming manual** (PM0253) | `PM0253-Cortex-M7-programming-manual.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
+| Safety manual, single-core H7 (UM2331) | `UM2331-STM32H7-single-core-safety-manual.pdf` | Functional safety; later reading |
+| Self-test library guide (UM3252) | `UM3252-STM32H7-self-test-library-guide.pdf` | Functional safety; later reading |
+| Functional safety packages overview | `STM32-functional-safety-packages.pdf` | Functional safety; later reading |
 
 Board page (BOM, Gerbers, schematic revisions): [STM32H735G-DK](https://www.st.com/en/evaluation-tools/stm32h735g-dk.html)
 
@@ -25,26 +24,35 @@ Board page (BOM, Gerbers, schematic revisions): [STM32H735G-DK](https://www.st.c
 
 | Document | File | Source |
 |---|---|---|
-| **Board user manual** (UM3385) | `um3385-discovery-kit-with-stm32mp257f-mpu-stmicroelectronics.pdf` | [st.com](https://www.st.com/resource/en/user_manual/um3385-discovery-kit-with-stm32mp257f-mpu-stmicroelectronics.pdf) |
-| **Board schematic** (MB1605 rev C01) | `mb1605-mp257f-c01-schematic.pdf` | [st.com](https://www.st.com/resource/en/schematic_pack/mb1605-mp257f-c01-schematic.pdf) |
-| **MPU datasheet**, C/F variants, includes STM32MP257F (Apr 2025) | `DS_stm32mp257c.pdf` | [ST wiki → STM32MP25 resources](https://wiki.st.com/stm32mpu/wiki/STM32MP25_resources) |
-| **MPU reference manual** (RM0457) | `rm0457-stm32mp2325xx-advanced-armbased-3264bit-mpus-stmicroelectronics.pdf` | [ST wiki → STM32MP25 resources](https://wiki.st.com/stm32mpu/wiki/STM32MP25_resources) |
-| **Errata sheet** (ES0598) | `es0598-stm32mp251x3x5x7x-device-errata-stmicroelectronics.pdf` | [ST wiki → STM32MP25 resources](https://wiki.st.com/stm32mpu/wiki/STM32MP25_resources) |
-| **Cortex-M33 programming manual** (PM0264) | `pm0264-stm32-cortexm33-mcus-programming-manual-stmicroelectronics.pdf` | For the M33 co-processor |
-| **PMIC datasheet** (STPMIC25, the power chip on this board) | `DS_stpmic25.pdf` | st.com |
-| PMIC datasheet (STPMIC2L) | `DS_stpmic2l.pdf` | Different PMIC; check UM3385 for which one your board uses |
-| MPU datasheet, A/D variants | `en.DM00969228.pdf` | ⚠️ Not your chip (STM32MP25xA/D); use `DS_stm32mp257c.pdf` |
+| **Board user manual** (UM3385) | `UM3385-STM32MP257F-DK-user-manual.pdf` | [st.com](https://www.st.com/resource/en/user_manual/um3385-discovery-kit-with-stm32mp257f-mpu-stmicroelectronics.pdf) |
+| **Board schematic** (MB1605 rev C01) | `MB1605-C01-STM32MP257F-DK-schematic.pdf` | [st.com](https://www.st.com/resource/en/schematic_pack/mb1605-mp257f-c01-schematic.pdf) |
+| **MPU datasheet** (DS14284, STM32MP25xC/F, includes your MP257F) | `DS14284-STM32MP25xC-F-datasheet.pdf` | [ST wiki → STM32MP25 resources](https://wiki.st.com/stm32mpu/wiki/STM32MP25_resources) |
+| **MPU reference manual** (RM0457) | `RM0457-STM32MP23-25-reference-manual.pdf` | [ST wiki → STM32MP25 resources](https://wiki.st.com/stm32mpu/wiki/STM32MP25_resources) |
+| **Errata sheet** (ES0598) | `ES0598-STM32MP25-errata.pdf` | [ST wiki → STM32MP25 resources](https://wiki.st.com/stm32mpu/wiki/STM32MP25_resources) |
+| **Cortex-M33 programming manual** (PM0264) | `PM0264-Cortex-M33-programming-manual.pdf` | For the M33 co-processor |
+| **PMIC datasheet** (DS14278, STPMIC25, the power chip on this board) | `DS14278-STPMIC25-PMIC-datasheet.pdf` | st.com |
 
 Board page: [STM32MP257F-DK](https://www.st.com/en/evaluation-tools/stm32mp257f-dk.html)
 
-## External modules → `docs/hardware/modules/`
+## CAN hardware on the boards
 
-| Module | What to get |
-|---|---|
-| SIM7600G-H | SIMCom hardware design manual + AT command manual |
-| NEO-M8N | u-blox NEO-M8 datasheet + u-blox M8 receiver description (UBX protocol) |
-| W25Q128 / W25Q256 | Winbond datasheet |
-| CAN-FD transceiver | Datasheet for your transceiver part number |
+- **STM32H735G-DK** has an on-board CAN FD transceiver, the **Microchip MCP2562FD**. It's wired to FDCAN3 (PF7 = TX, PF6 = RX) through solder bridges SB29 and SB30 (UM2679 p.18). FDCAN3 shares pins with SPI5 and UART7, and PF7 also drives the Arduino LED LD8.
+- **STM32MP257F-DK** has **no CAN transceiver**. Use your external CAN-FD transceiver module on the expansion header.
+
+## Still to download
+
+| Folder | Document | Needed by |
+|---|---|---|
+| `h735/` | Microchip **MCP2562FD** datasheet (on-board CAN FD transceiver) | Week 19 |
+| `h735/` | **UM2217**: Description of STM32H7 HAL and low-layer drivers | Week 1 |
+| `h735/` | **AN4839**: Level 1 cache on STM32F7 and STM32H7 | Week 9 |
+| `h735/` | **AN4838**: Managing memory protection unit in STM32 MCUs | Week 9 |
+| `modules/` | **W25Q128JV** / **W25Q256JV** datasheet (Winbond) | Week 8 |
+| `modules/` | **NEO-M8** datasheet + **u-blox M8 receiver description** (NMEA/UBX protocol) | Week 11 |
+| `modules/` | Datasheet for **your CAN-FD transceiver module's** chip (part number is printed on the chip) | Week 19 |
+| `modules/` | **SIM7600 series AT command manual** + **SIM7600 hardware design** (SIMCom) | Week 30 |
+
+The MP257 software docs (Starter / Developer / Distribution Packages, Device Tree, RPMsg) live on the [ST wiki](https://wiki.st.com/stm32mpu), not in PDFs, so there's nothing more to download for that board.
 
 ## Which document answers what
 
