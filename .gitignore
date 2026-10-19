@@ -53,3 +53,25 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# STM32CubeIDE / build output
+Debug/
+Release/
+build/
+*.bin
+*.list
+
+# TouchGFX build output
+**/TouchGFX/build/
+
+# Yocto
+mp257/yocto/build*/
+downloads/
+sstate-cache/
+tmp/
+
+# Editors / OS
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
