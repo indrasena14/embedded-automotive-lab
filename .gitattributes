@@ -1,0 +1,4 @@
+# Shell scripts and Makefiles must keep LF endings to run in WSL/Linux
+*.sh text eol=lf
+Makefile text eol=lf
+*.mk text eol=lf
