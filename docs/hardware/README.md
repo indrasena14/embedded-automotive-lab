@@ -14,6 +14,7 @@ Official ST documents for both boards, stored in the folders below. Files are na
 | **MCU reference manual** (RM0468) | `RM0468-STM32H723-735-reference-manual.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
 | **Errata sheet** (ES0491) | `ES0491-STM32H72x-73x-errata.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
 | **Cortex-M7 programming manual** (PM0253) | `PM0253-Cortex-M7-programming-manual.pdf` | [Product page](https://www.st.com/en/microcontrollers-microprocessors/stm32h735ig.html) |
+| **HAL & LL driver manual** (UM2217 Rev 6) | `UM2217-STM32H7-HAL-LL-drivers.pdf` | [STM32CubeH7 → Documentation](https://www.st.com/en/embedded-software/stm32cubeh7.html) |
 | Safety manual, single-core H7 (UM2331) | `UM2331-STM32H7-single-core-safety-manual.pdf` | Functional safety; later reading |
 | Self-test library guide (UM3252) | `UM3252-STM32H7-self-test-library-guide.pdf` | Functional safety; later reading |
 | Functional safety packages overview | `STM32-functional-safety-packages.pdf` | Functional safety; later reading |
@@ -44,7 +45,6 @@ Board page: [STM32MP257F-DK](https://www.st.com/en/evaluation-tools/stm32mp257f-
 | Folder | Document | Needed by |
 |---|---|---|
 | `h735/` | Microchip **MCP2562FD** datasheet (on-board CAN FD transceiver) | Week 19 |
-| `h735/` | **UM2217**: Description of STM32H7 HAL and low-layer drivers | Week 1 |
 | `h735/` | **AN4839**: Level 1 cache on STM32F7 and STM32H7 | Week 9 |
 | `h735/` | **AN4838**: Managing memory protection unit in STM32 MCUs | Week 9 |
 | `modules/` | **W25Q128JV** / **W25Q256JV** datasheet (Winbond) | Week 8 |
