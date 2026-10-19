@@ -10,6 +10,7 @@ One place for everything made while learning: study pages (Claude artifacts), fl
 |---|---|---|---|---|
 | 01 | Cortex-M7 core: CPU, Arm families, FPU, cache, MPU vs MMU, DMIPS, DSP | 1 | [Cortex-M7 Core](https://claude.ai/artifact/CFJY3hw8TaLYpdDibc7jom) | [01-cortex-m7-core.html](01-cortex-m7-core.html) |
 | 02 | Memories: flash, SRAM regions, TCM, memory map, cache hit/miss, linker placement, C sections | 1 | [H735 Memories](https://claude.ai/artifact/EeTwZtDSf1suXydwR3XbD6) | [02-h735-memories.html](02-h735-memories.html) · demo [h735/00-memory-sections](../../h735/00-memory-sections/) |
+| 03 | Build pipeline: .c → .i → .s → .o → .elf → .bin/.hex, VMA vs LMA, boot to main(), memory sections | 1 | [From .c to .hex](https://claude.ai/artifact/UiZ62CwCXJtp95PSFCEbxK) | [03-build-pipeline.html](03-build-pipeline.html) · demo [h735/00-build-pipeline](../../h735/00-build-pipeline/) |
 
 ## Flowcharts and diagrams
 
@@ -19,6 +20,9 @@ One place for everything made while learning: study pages (Claude artifacts), fl
 | Chip vs core block diagram | Cortex-M7 core inside the STM32H735, with ST's peripherals around it | [Cortex-M7 Core § 01](https://claude.ai/artifact/CFJY3hw8TaLYpdDibc7jom) |
 | H735 memory map | ITCM, flash, DTCM, AXI SRAM, SRAM1–4, backup SRAM, peripherals, Octo-SPI | [H735 Memories → memory map](https://claude.ai/artifact/EeTwZtDSf1suXydwR3XbD6) |
 | Compile → link flow | .c → compiler → sections → linker + .ld → .elf / .map | [H735 Memories → who decides](https://claude.ai/artifact/EeTwZtDSf1suXydwR3XbD6) |
+| Build pipeline | main.c → .i → .s → .o → .elf → .bin / .hex | [From .c to .hex](https://claude.ai/artifact/UiZ62CwCXJtp95PSFCEbxK) |
+| Flash vs RAM layout (VMA/LMA) | How .data is stored in flash and copied to RAM at reset | [From .c to .hex → .data has two addresses](https://claude.ai/artifact/UiZ62CwCXJtp95PSFCEbxK) |
+| Intel HEX record | Fields of one .hex line, decoded | [From .c to .hex → Reading the .hex](https://claude.ai/artifact/UiZ62CwCXJtp95PSFCEbxK) |
 
 Write new diagrams as Mermaid blocks (```` ```mermaid ````) in Markdown files here. GitHub renders them directly.
 
@@ -26,8 +30,8 @@ Write new diagrams as Mermaid blocks (```` ```mermaid ````) in Markdown files he
 
 | Document | Status | Where |
 |---|---|---|
-| Capstone architecture doc | Planned (week 35) | `capstone/` |
-| CAN database (DBC) and UDS DID list | Planned (weeks 21–24) | `capstone/docs/` |
+| Capstone architecture doc | Planned (week 36) | `capstone/` |
+| CAN database (DBC) and UDS DID list | Planned (weeks 22–25) | `capstone/docs/` |
 
 ## Adding a new entry
 

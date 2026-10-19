@@ -249,7 +249,7 @@ footer ul { margin: 0; padding-left: 1.2em; }
     </div>
     <p>"0-wait state execution" in the datasheet means cache hits. It also applies to the external OctoSPI flash and HyperRAM on your board, which are slower still.</p>
     <div class="callout">
-      <strong>Week 9 pitfall: cache coherency</strong>
+      <strong>Week 10 pitfall: cache coherency</strong>
       <p>The DMA copies data straight into RAM without the CPU. If the CPU then reads that address, it can get a stale copy from its D-cache. This is one of the most common STM32H7 bugs. The MPU (section 07) is the usual fix.</p>
     </div>
   </section>

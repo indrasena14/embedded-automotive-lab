@@ -218,7 +218,7 @@ pre.code .c { color: var(--accent); }
     <div class="sec-head"><span class="sec-num">01</span><h2>Flash with ECC</h2><span class="tag">1 MB · non-volatile</span></div>
     <ul class="plain">
       <li><strong>Flash</strong> keeps its contents with the power off. Your program lives here, starting at <code>0x0800 0000</code>.</li>
-      <li>It's split into <strong>8 sectors of 128 KB</strong>. Erasing works one whole sector at a time, which shapes how a bootloader is laid out (Weeks 25–29).</li>
+      <li>It's split into <strong>8 sectors of 128 KB</strong>. Erasing works one whole sector at a time, which shapes how a bootloader is laid out (Weeks 26–30).</li>
       <li><strong>ECC</strong> (error-correcting code) stores check bits with every flash word. A single flipped bit is corrected automatically. Two flipped bits are detected and raise a fault. This is essential for automotive and safety work.</li>
     </ul>
   </section>
@@ -287,7 +287,7 @@ pre.code .c { color: var(--accent); }
     <ul class="plain">
       <li><strong>System bootloader</strong>: a small program in ST's ROM, separate from your code. Hold BOOT0 high at reset and it can flash firmware over UART or USB, even when your own firmware is broken.</li>
       <li><strong>SFI</strong> (secure firmware install): firmware is sent to the chip encrypted at the factory, so the manufacturer can't read your code.</li>
-      <li><strong>SB-SFU</strong> (secure boot and secure firmware update): ST's reference design for checking firmware signatures at boot and updating safely. Closely related to your UDS bootloader in Weeks 25–29.</li>
+      <li><strong>SB-SFU</strong> (secure boot and secure firmware update): ST's reference design for checking firmware signatures at boot and updating safely. Closely related to your UDS bootloader in Weeks 26–30.</li>
     </ul>
   </section>
 
@@ -309,7 +309,7 @@ for (int i = 0; i &lt; 1000; i++)
       <p>DMA writes straight to RAM. The CPU may then read an old copy from its D-cache. CubeIDE puts variables in AXI SRAM, which is cached, so this is the default trap for DMA buffers.</p>
     </div>
     <div class="fix">
-      <strong>Fixes (Week 9)</strong>
+      <strong>Fixes (Week 10)</strong>
       <p>Call <code>SCB_InvalidateDCache_by_Addr()</code> before reading a DMA receive buffer, or use the MPU to mark the buffer's region as non-cacheable.</p>
     </div>
   </section>

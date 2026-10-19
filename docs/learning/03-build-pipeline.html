@@ -1,0 +1,561 @@
+<title>From .c to .hex</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a single study column like an annotated datasheet page; the datasheet line is decoded term by term, each term a section. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5a6577;
+  --rule: #d9dee6;
+  --accent: #0b6e69;        /* solder-mask teal */
+  --accent-soft: #e2f1ef;
+  --copper: #a8561c;        /* trace copper, used for warnings only */
+  --copper-soft: #f8ebe1;
+  --core: #e8eefb;          /* Arm core block */
+  --core-line: #4565b5;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151c; --surface: #181e27; --fg: #e4e8ef; --muted: #9aa5b6; --rule: #2a3340;
+    --accent: #4fc2b8; --accent-soft: #15312f; --copper: #e39a63; --copper-soft: #33241a;
+    --core: #1b2540; --core-line: #7e9be0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151c; --surface: #181e27; --fg: #e4e8ef; --muted: #9aa5b6; --rule: #2a3340;
+  --accent: #4fc2b8; --accent-soft: #15312f; --copper: #e39a63; --copper-soft: #33241a;
+  --core: #1b2540; --core-line: #7e9be0; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 16px/1.65 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 72px;
+}
+.page { max-width: 760px; margin: 0 auto; display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.4rem, 7vw, 3.4rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.65rem; font-weight: 600; }
+h3 { font-size: 1.15rem; font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+.eyebrow {
+  font: 500 0.78rem/1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+}
+header { display: grid; gap: 18px; }
+.lede { font-size: 1.1rem; color: var(--muted); }
+
+/* the datasheet excerpt, decoded */
+.excerpt {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 20px 22px; display: grid; gap: 12px;
+}
+.excerpt .src { font: 500 0.75rem var(--font-mono); color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+.excerpt p { font-family: var(--font-mono); font-size: 0.92rem; line-height: 2.1; max-width: none; }
+.term {
+  text-decoration: none; color: var(--fg); background: var(--accent-soft);
+  border-bottom: 2px solid var(--accent); padding: 1px 4px; border-radius: 2px; white-space: nowrap;
+}
+.term sup { font-size: 0.7em; color: var(--accent); font-weight: 500; margin-left: 2px; }
+.term:hover { background: var(--accent); color: var(--surface); }
+.term:hover sup { color: var(--surface); }
+
+section { display: grid; gap: 16px; scroll-margin-top: 24px; }
+.sec-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--rule); padding-bottom: 10px; }
+.sec-num { font: 500 0.85rem var(--font-mono); color: var(--accent); min-width: 2ch; }
+.sec-head .tag { margin-left: auto; font: 0.8rem var(--font-mono); color: var(--muted); white-space: nowrap; }
+
+ul.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; max-width: 65ch; }
+
+/* chip diagram */
+.diagram-wrap { overflow-x: auto; }
+.chip {
+  min-width: 560px; border: 2px solid var(--fg); border-radius: 4px; padding: 14px; display: grid; gap: 12px;
+  background: var(--surface); position: relative;
+}
+.chip-label { font: 600 0.8rem var(--font-mono); letter-spacing: 0.06em; }
+.core-box {
+  background: var(--core); border: 2px solid var(--core-line); border-radius: 4px; padding: 12px 14px; display: grid; gap: 8px;
+}
+.core-box .who { font: 0.72rem var(--font-mono); color: var(--core-line); text-transform: uppercase; letter-spacing: 0.08em; }
+.core-box .row { display: flex; flex-wrap: wrap; gap: 6px; }
+.blk { font: 500 0.78rem var(--font-mono); border: 1px solid var(--core-line); border-radius: 3px; padding: 3px 8px; background: var(--surface); }
+.bus { text-align: center; font: 0.75rem var(--font-mono); color: var(--muted); border-left: 2px dashed var(--muted); width: 0; margin: 0 auto; height: 22px; }
+.bus-label { text-align: center; font: 0.75rem var(--font-mono); color: var(--muted); margin-top: -8px; }
+.periph { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.periph div { border: 1px solid var(--rule); border-radius: 3px; padding: 8px 6px; font: 0.76rem/1.35 var(--font-mono); text-align: center; background: var(--bg); }
+.periph-note { font: 0.72rem var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* tables */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; min-width: 480px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 0.78rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+td.mine { color: var(--accent); font-weight: 600; }
+tbody tr:hover { background: var(--surface); }
+
+/* cache hit/miss strip */
+.cache-flow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.flow { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; display: grid; gap: 8px; }
+.flow h3 { font-size: 1rem; }
+.flow .path { font: 0.82rem/1.8 var(--font-mono); }
+.flow .cost { font: 600 0.85rem var(--font-mono); }
+.hit .cost { color: var(--accent); }
+.miss .cost { color: var(--copper); }
+
+.callout {
+  background: var(--copper-soft); border-left: 3px solid var(--copper); padding: 14px 16px; border-radius: 0 6px 6px 0;
+  display: grid; gap: 6px; max-width: 65ch;
+}
+.callout strong { color: var(--copper); font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.calc {
+  font: 1.05rem var(--font-mono); background: var(--surface); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline;
+}
+.calc b { color: var(--accent); font-weight: 500; }
+.calc .eq { color: var(--muted); }
+
+/* quiz */
+.quiz { display: grid; gap: 10px; }
+details { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; }
+summary { cursor: pointer; font-weight: 500; list-style: none; display: flex; gap: 10px; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+"; font-family: var(--font-mono); color: var(--accent); width: 1ch; }
+details[open] summary::before { content: "−"; }
+details p { margin-top: 10px; color: var(--muted); padding-left: calc(1ch + 10px); }
+
+footer { border-top: 1px solid var(--rule); padding-top: 18px; display: grid; gap: 8px; font-size: 0.9rem; color: var(--muted); }
+footer ul { margin: 0; padding-left: 1.2em; }
+
+@media (max-width: 560px) {
+  .cache-flow { grid-template-columns: 1fr; }
+  .sec-head { flex-wrap: wrap; }
+  .sec-head .tag { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+<style>
+/* additions for page 03: pipeline strip, stage cards, hex decoder, VMA/LMA diagram */
+.pipe { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font: 500 0.85rem var(--font-mono); }
+.pipe .f { background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 10px; }
+.pipe .f.final { border-color: var(--accent); color: var(--accent); }
+.pipe .t { color: var(--muted); font-size: 0.75rem; }
+.stage { display: grid; gap: 12px; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 18px 20px; }
+.stage-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.stage-head .n { font: 700 1.4rem var(--font-display); color: var(--accent); }
+.stage-head h3 { font-size: 1.2rem; }
+.stage-head .io { margin-left: auto; font: 0.82rem var(--font-mono); color: var(--muted); }
+.stage p { color: var(--fg); }
+pre.code { margin: 0; overflow-x: auto; background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; font: 0.82rem/1.6 var(--font-mono); }
+pre.code .c { color: var(--accent); }
+pre.code .w { color: var(--copper); font-weight: 500; }
+.stage pre.code { background: var(--bg); }
+.hexline { overflow-x: auto; }
+.hexline .row { display: inline-flex; font: 0.95rem var(--font-mono); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+.hexline .row span { padding: 6px 8px; border-right: 1px solid var(--rule); }
+.hexline .row span:last-child { border-right: 0; }
+.hexline .lbl { display: inline-flex; font: 0.7rem var(--font-mono); color: var(--muted); }
+.hx-len { background: var(--core); } .hx-addr { background: var(--accent-soft); } .hx-type { background: var(--bg); } .hx-data { background: var(--copper-soft); } .hx-sum { background: var(--bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 0.8rem var(--font-mono); color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--rule); }
+.vl { min-width: 560px; display: grid; grid-template-columns: 1fr 120px 1fr; gap: 0; align-items: stretch; }
+.vl .col { display: grid; gap: 4px; align-content: start; }
+.vl .cap { font: 600 0.78rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
+.vl .blk2 { border: 1px solid var(--rule); border-radius: 4px; padding: 7px 10px; font: 0.8rem/1.4 var(--font-mono); background: var(--surface); display: flex; justify-content: space-between; gap: 8px; }
+.vl .blk2.hl { border-color: var(--copper); background: var(--copper-soft); }
+.vl .blk2.ghost { border-style: dashed; color: var(--muted); background: transparent; }
+.vl .arrow { display: grid; place-items: center; font: 0.75rem/1.3 var(--font-mono); color: var(--copper); text-align: center; padding: 0 6px; }
+.boot { counter-reset: b; display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.boot li { counter-increment: b; display: grid; grid-template-columns: 2rem 1fr; gap: 10px; align-items: baseline; }
+.boot li::before { content: counter(b); font: 600 1rem var(--font-display); color: var(--accent); }
+.fix { background: var(--accent-soft); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 0 6px 6px 0; max-width: 65ch; display: grid; gap: 6px; }
+.fix strong { color: var(--accent); font: 500 0.8rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+@media (max-width: 560px) { .stage-head .io { margin-left: 0; width: 100%; } }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow"><span>STM32H735IG</span><span>arm-none-eabi-gcc 13.2</span><span>h735/00-build-pipeline</span><span>Week 1 · Basics</span></div>
+    <h1>From .c to .hex</h1>
+    <p class="lede">What happens between saving <code>main.c</code> and the chip running it. Every output on this page comes from a real build of the demo project on this laptop.</p>
+  </header>
+
+  <div class="excerpt">
+    <div class="src">The whole pipeline</div>
+    <div class="pipe" role="img" aria-label="main.c, preprocessor, main.i, compiler, main.s, assembler, main.o, linker, firmware.elf, objcopy, firmware.bin and firmware.hex">
+      <span class="f">main.c</span><span class="t">→ preprocess →</span>
+      <span class="f">main.i</span><span class="t">→ compile →</span>
+      <span class="f">main.s</span><span class="t">→ assemble →</span>
+      <span class="f">main.o</span><span class="t">→ link (+ .ld) →</span>
+      <span class="f final">firmware.elf</span><span class="t">→ objcopy →</span>
+      <span class="f final">.bin</span><span class="f final">.hex</span>
+    </div>
+    <p style="font-family:var(--font-body);line-height:1.6">One command, <code>arm-none-eabi-gcc</code>, normally runs stages 1–4 in one go. CubeIDE's Build button does the same. The demo's <code>build.sh</code> stops after each stage so you can open every file.</p>
+  </div>
+
+  <section id="demo">
+    <div class="sec-head"><span class="sec-num"></span><h2>The demo program</h2><span class="tag">main.c</span></div>
+<pre class="code">#include &lt;stdint.h&gt;
+#define BLINK_MS 500                         <span class="c">// preprocessor</span>
+
+const uint32_t baud_rate = 115200;           <span class="c">// .rodata → flash</span>
+uint32_t blink_ms = BLINK_MS;                <span class="c">// .data   → RAM, initial value in flash</span>
+uint32_t tick_count;                         <span class="c">// .bss    → RAM, zeroed at startup</span>
+
+static uint32_t add(uint32_t a, uint32_t b)  <span class="c">// .text   → flash</span>
+{ return a + b; }
+
+int main(void) {                             <span class="c">// .text   → flash</span>
+    uint32_t local = 3;                      <span class="c">// stack</span>
+    while (1) {
+        tick_count = add(tick_count, local);
+        if (tick_count &gt; blink_ms * baud_rate) tick_count = 0;
+    }
+}</pre>
+    <p>Two more files make it a complete firmware: <code>startup.c</code> (vector table and <code>Reset_Handler</code>) and <code>h735_min.ld</code> (the linker script). CubeIDE generates both for every project.</p>
+  </section>
+
+  <section id="stages">
+    <div class="sec-head"><span class="sec-num"></span><h2>The five stages</h2><span class="tag">real output</span></div>
+
+    <div class="stage" id="s1">
+      <div class="stage-head"><span class="n">1</span><h3>Preprocessor</h3><span class="io">main.c → main.i · gcc -E</span></div>
+      <p>Pure text substitution, before any C is understood. <code>#include</code> pastes the header file in, <code>#define</code> names are replaced, and <code>#if</code> blocks are kept or dropped. Comments are removed.</p>
+<pre class="code">main.c: 25 lines  →  main.i: 94 lines   <span class="c">(stdint.h pasted in)</span>
+line 77:  uint32_t blink_ms = 500;      <span class="c">(BLINK_MS is gone)</span></pre>
+      <p>When a macro misbehaves, look at the <code>.i</code> file to see exactly what the compiler received.</p>
+    </div>
+
+    <div class="stage" id="s2">
+      <div class="stage-head"><span class="n">2</span><h3>Compiler</h3><span class="io">main.i → main.s · gcc -S</span></div>
+      <p>Translates C into assembly for the Cortex-M7, optimizes it, and sorts every item into a section. This is where the <code>-O</code> level matters.</p>
+<pre class="code">main:
+    ldr   r3, .L5          <span class="c">@ address of blink_ms</span>
+    ldr   r1, [r3]
+    ldr   r3, .L5+4        <span class="c">@ address of tick_count</span>
+    ldr   r2, [r3]
+    mov   r3, #115200      <span class="c">@ baud_rate folded into the code</span>
+    mul   r2, r3, r2       <span class="c">@ blink_ms * baud_rate, once</span>
+    ...
+.L3:
+    adds  r3, r3, #3       <span class="c">@ add(tick_count, local), inlined</span>
+    cmp   r2, r3
+    bcc   .L2
+    b     .L3              <span class="c">@ loop, no store to tick_count</span></pre>
+      <div class="callout">
+        <strong>Three things the optimizer did</strong>
+        <p><code>add()</code> was inlined and has no symbol. <code>local</code> became the constant <code>#3</code>, so it never touches the stack. And <code>tick_count</code> lives only in a register and is never written back to RAM, because nothing else reads it. Hardware registers and variables shared with interrupts need <code>volatile</code> to stop this.</p>
+      </div>
+    </div>
+
+    <div class="stage" id="s3">
+      <div class="stage-head"><span class="n">3</span><h3>Assembler</h3><span class="io">main.s → main.o · gcc -c</span></div>
+      <p>Turns assembly into machine code: a <strong>relocatable object file</strong>. The sections exist, but nothing has an address yet. References to other files are left as placeholders called relocations.</p>
+<pre class="code">.text    size 0x28   VMA 0x00000000
+.data    size 0x04   VMA 0x00000000
+.bss     size 0x04   VMA 0x00000000
+.rodata  size 0x04   VMA 0x00000000
+
+00000000 R baud_rate     <span class="c">R = .rodata</span>
+00000000 D blink_ms      <span class="c">D = .data</span>
+00000000 T main          <span class="c">T = .text</span>
+00000000 B tick_count    <span class="c">B = .bss</span></pre>
+      <p>Each <code>.c</code> file becomes its own <code>.o</code>. A CubeIDE project produces dozens: one for your code, one per HAL driver, one for the startup file.</p>
+    </div>
+
+    <div class="stage" id="s4">
+      <div class="stage-head"><span class="n">4</span><h3>Linker</h3><span class="io">*.o + .ld → firmware.elf + .map</span></div>
+      <p>Combines every <code>.o</code>, follows the linker script to place each section in FLASH or RAM, gives every symbol its final address, and fills in the placeholders. It also writes the <code>.map</code> report.</p>
+<pre class="code">08000000 R vector_table      <span class="c">first thing in flash</span>
+08000012 T Reset_Handler
+08000074 T main
+0800009c R baud_rate
+24000000 D blink_ms          <span class="c">RAM</span>
+24000004 B tick_count        <span class="c">RAM</span>
+24050000   _estack           <span class="c">top of AXI SRAM</span></pre>
+      <p>If two files define the same symbol, or a function is called but never defined, this is the stage that fails with <span class="mono">multiple definition</span> or <span class="mono">undefined reference</span>.</p>
+    </div>
+
+    <div class="stage" id="s5">
+      <div class="stage-head"><span class="n">5</span><h3>objcopy</h3><span class="io">firmware.elf → .bin / .hex</span></div>
+      <p>Strips the <code>.elf</code> down to just the bytes that go into flash. Nothing about the program changes; only the packaging does.</p>
+<pre class="code">firmware.elf   9,452 bytes   <span class="c">headers, symbols, section table</span>
+firmware.bin     164 bytes   <span class="c">exactly what goes into flash</span>
+firmware.hex     535 bytes   <span class="c">same 164 bytes as text + addresses</span></pre>
+    </div>
+  </section>
+
+  <section id="files">
+    <div class="sec-head"><span class="sec-num"></span><h2>Every file, compared</h2><span class="tag">who makes it · what's inside</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>File</th><th>Made by</th><th>Contains</th><th>Readable?</th><th>To the chip?</th></tr></thead>
+        <tbody>
+          <tr><td><strong>.c / .h</strong></td><td>You</td><td>Source code</td><td>Yes</td><td>No</td></tr>
+          <tr><td><strong>.i</strong></td><td>Preprocessor</td><td>Source with includes and macros expanded</td><td>Yes</td><td>No</td></tr>
+          <tr><td><strong>.s</strong></td><td>Compiler</td><td>Assembly</td><td>Yes</td><td>No</td></tr>
+          <tr><td><strong>.o</strong></td><td>Assembler</td><td>Machine code, addresses not yet set</td><td>Via objdump</td><td>No</td></tr>
+          <tr><td><strong>.elf</strong></td><td>Linker</td><td>Final machine code + addresses + symbols (+ debug info with <code>-g</code>)</td><td>Via objdump</td><td class="mine">Yes, and the debugger needs it</td></tr>
+          <tr><td><strong>.map</strong></td><td>Linker</td><td>Report: where every section and symbol landed, how full each region is</td><td>Yes</td><td>No</td></tr>
+          <tr><td><strong>.list</strong></td><td>objdump</td><td>Disassembly of the whole firmware</td><td>Yes</td><td>No</td></tr>
+          <tr><td><strong>.bin</strong></td><td>objcopy</td><td>Raw flash bytes, no addresses</td><td>Hex viewer</td><td class="mine">Yes, you give the start address</td></tr>
+          <tr><td><strong>.hex</strong></td><td>objcopy</td><td>Flash bytes as text lines, each with an address and checksum</td><td>Yes</td><td class="mine">Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>In CubeIDE, the <code>.elf</code>, <code>.map</code> and <code>.list</code> appear in the <code>Debug/</code> folder. Turn on <code>.bin</code> and <code>.hex</code> under Project Properties → C/C++ Build → Settings → MCU Post build outputs.</p>
+  </section>
+
+  <section id="bin">
+    <div class="sec-head"><span class="sec-num"></span><h2>Reading the .bin</h2><span class="tag">first 16 bytes = vector table</span></div>
+<pre class="code">offset 0x00:  24050000   08000013   08000011   08000011
+              initial SP  Reset      NMI        HardFault</pre>
+    <ul class="plain">
+      <li><code>0x2405 0000</code> is <code>_estack</code>, the top of AXI SRAM. The CPU loads it into the stack pointer at power-on.</li>
+      <li><code>0x0800 0013</code> is <code>Reset_Handler</code> (<code>0x0800 0012</code>) with bit 0 set. Bit 0 marks Thumb code, the only instruction set a Cortex-M runs.</li>
+      <li>A <code>.bin</code> has no addresses. Byte 0 goes wherever you tell the programmer, which must be <code>0x0800 0000</code>.</li>
+    </ul>
+  </section>
+
+  <section id="hex">
+    <div class="sec-head"><span class="sec-num"></span><h2>Reading the .hex</h2><span class="tag">Intel HEX format</span></div>
+    <p>Each line is one record: <span class="mono">:</span> then byte count, address, record type, data, checksum.</p>
+    <div class="hexline" role="img" aria-label="Hex record :0400A000F401000067 split into fields">
+      <div class="row"><span>:</span><span class="hx-len">04</span><span class="hx-addr">00A0</span><span class="hx-type">00</span><span class="hx-data">F4010000</span><span class="hx-sum">67</span></div>
+    </div>
+    <div class="legend"><span><i class="hx-len"></i>4 bytes</span><span><i class="hx-addr"></i>address 0x00A0</span><span><i class="hx-type"></i>type 00 = data</span><span><i class="hx-data"></i>data</span><span><i class="hx-sum"></i>checksum</span></div>
+<pre class="code">:020000040800F2                        <span class="c">type 04: upper address = 0x0800 → 0x0800xxxx</span>
+:10000000000005241300000811000008110000087A
+                                       <span class="c">16 bytes at 0x0800 0000: the vector table</span>
+...
+:0400A000<span class="w">F4010000</span>67                  <span class="c">at 0x0800 00A0: F4 01 00 00 = 0x1F4 = 500</span>
+:0400000508000013DC                    <span class="c">type 05: start address = Reset_Handler</span>
+:00000001FF                            <span class="c">type 01: end of file</span></pre>
+    <p>The highlighted bytes are <code>blink_ms</code>'s initial value, 500, stored in <strong>flash</strong>. The next section explains why.</p>
+  </section>
+
+  <section id="vmalma">
+    <div class="sec-head"><span class="sec-num"></span><h2>.data has two addresses</h2><span class="tag">VMA vs LMA</span></div>
+    <p>Every section has a <strong>VMA</strong> (where it lives while the program runs) and an <strong>LMA</strong> (where its bytes are stored in the image). For code and constants they're the same. For <code>.data</code> they differ, because RAM is empty at power-on.</p>
+    <div class="diagram-wrap" role="img" aria-label="Flash holds .isr_vector, .text, .rodata and the .data initial values; Reset_Handler copies .data to RAM and zeroes .bss">
+      <div class="vl">
+        <div class="col">
+          <div class="cap">Flash · stored (LMA)</div>
+          <div class="blk2"><span>.isr_vector</span><span>0x0800 0000</span></div>
+          <div class="blk2"><span>.text</span><span>0x0800 0010</span></div>
+          <div class="blk2"><span>.rodata</span><span>0x0800 009C</span></div>
+          <div class="blk2 hl"><span>.data values</span><span>0x0800 00A0</span></div>
+        </div>
+        <div class="arrow">Reset_Handler<br>copies →<br><br>zeroes →</div>
+        <div class="col">
+          <div class="cap">AXI SRAM · runs (VMA)</div>
+          <div class="blk2 hl"><span>.data blink_ms</span><span>0x2400 0000</span></div>
+          <div class="blk2"><span>.bss tick_count</span><span>0x2400 0004</span></div>
+          <div class="blk2 ghost"><span>free</span><span></span></div>
+          <div class="blk2 ghost"><span>stack ↑</span><span>0x2405 0000</span></div>
+        </div>
+      </div>
+    </div>
+<pre class="code">.data   VMA 0x24000000   LMA 0x080000a0   <span class="c">objdump -h firmware.elf</span>
+.bss    VMA 0x24000004   (NOLOAD: not in the .bin)</pre>
+    <p>The linker script line that does this is <code>} &gt;RAM AT&gt;FLASH</code>: run in RAM, store in flash.</p>
+  </section>
+
+  <section id="boot">
+    <div class="sec-head"><span class="sec-num"></span><h2>From power-on to main()</h2><span class="tag">what the image is for</span></div>
+    <ol class="boot">
+      <li><span>The programmer (CubeProgrammer or the IDE) writes the image into flash at <code>0x0800 0000</code>.</span></li>
+      <li><span>At power-on the CPU reads word 0 into the stack pointer (<code>0x2405 0000</code>) and word 1 as the reset address.</span></li>
+      <li><span><code>Reset_Handler</code> copies <code>.data</code>'s values from flash to RAM, so <code>blink_ms</code> becomes 500.</span></li>
+      <li><span>It fills <code>.bss</code> with zeros, so <code>tick_count</code> starts at 0.</span></li>
+      <li><span>It calls <code>main()</code>. CubeIDE's startup file also calls <code>SystemInit()</code> before the copy (FPU access, vector table); the clock tree is set up later, inside <code>main()</code>, by <code>SystemClock_Config()</code>.</span></li>
+    </ol>
+  </section>
+
+  <section id="startup">
+    <div class="sec-head"><span class="sec-num"></span><h2>Startup code, line by line</h2><span class="tag">startup.c</span></div>
+    <p>A microcontroller has no operating system. At power-on the CPU knows nothing about C, yet C needs three things ready before <code>main()</code>: a stack, <code>.data</code> holding its starting values, and <code>.bss</code> set to zero. The startup code sets up those three things, then calls <code>main()</code>.</p>
+
+    <div class="stage">
+      <div class="stage-head"><span class="n">A</span><h3>Symbols from the linker script</h3><span class="io">extern</span></div>
+<pre class="code">extern uint32_t _estack;                  <span class="c">// top of RAM, 0x2405 0000</span>
+extern uint32_t _sidata, _sdata, _edata;  <span class="c">// .data: values in flash, start/end in RAM</span>
+extern uint32_t _sbss, _ebss;             <span class="c">// .bss: start/end in RAM</span></pre>
+      <p>These are defined in the linker script, not in C. They aren't real variables. They're addresses the linker calculated, so the code always takes their address with <code>&amp;</code>: <code>&amp;_sdata</code> is <code>0x2400 0000</code>. Reading <code>_sdata</code> without <code>&amp;</code> would give whatever happens to be stored there.</p>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head"><span class="n">B</span><h3>Reset_Handler: the first code that runs</h3><span class="io">copy, zero, call main</span></div>
+<pre class="code">void Reset_Handler(void)
+{
+    uint32_t *src = &amp;_sidata;          <span class="c">// .data values in FLASH (0x0800 00A0)</span>
+    uint32_t *dst = &amp;_sdata;           <span class="c">// .data in RAM (0x2400 0000)</span>
+
+    while (dst &lt; &amp;_edata)              <span class="c">// copy word by word</span>
+        *dst++ = *src++;              <span class="c">// read, write, advance both by 4 bytes</span>
+
+    for (dst = &amp;_sbss; dst &lt; &amp;_ebss; ) <span class="c">// zero .bss</span>
+        *dst++ = 0;
+
+    main();
+    while (1) { }                     <span class="c">// main() has nothing to return to</span>
+}</pre>
+      <p>Before the copy loop, <code>blink_ms</code> holds random power-on garbage. After it, 500. The zero loop is what makes C's promise true that globals with no starting value begin at 0.</p>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head"><span class="n">C</span><h3>Default_Handler</h3><span class="io">unexpected interrupts and faults</span></div>
+<pre class="code">void Default_Handler(void) { while (1) { } }</pre>
+      <p>A crash or an interrupt with no handler lands here and stays, so with the debugger attached you can pause and see where it stopped (Week 11).</p>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head"><span class="n">D</span><h3>The vector table: read by the hardware</h3><span class="io">.isr_vector</span></div>
+<pre class="code">__attribute__((section(".isr_vector"), used))
+void (* const vector_table[])(void) = {
+    (void (*)(void))&amp;_estack,  <span class="c">// word 0, 0x0800 0000: initial stack pointer</span>
+    Reset_Handler,             <span class="c">// word 1, 0x0800 0004: where to start</span>
+    Default_Handler,           <span class="c">// word 2: NMI</span>
+    Default_Handler,           <span class="c">// word 3: HardFault</span>
+};</pre>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Part</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>void (*)(void)</code></td><td>Pointer to a function taking nothing and returning nothing</td></tr>
+            <tr><td><code>vector_table[]</code></td><td>An array of those pointers</td></tr>
+            <tr><td><code>const</code></td><td>Never changes, so it lives in flash</td></tr>
+            <tr><td><code>section(".isr_vector")</code></td><td>Its own section, which the linker script puts first in flash with <code>KEEP()</code></td></tr>
+            <tr><td><code>used</code></td><td>Keep it even though no C code references it; only the hardware reads it</td></tr>
+            <tr><td><code>(void (*)(void))&amp;_estack</code></td><td>A cast, because every entry must have the same type</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>At power-on the CPU loads word 0 into the stack pointer and jumps to the address in word 1. Later, each interrupt jumps to its own entry. This demo has 4 entries; CubeIDE's full H735 table has well over 150, one per interrupt source.</p>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head"><span class="n">E</span><h3>main.c</h3><span class="io">the super loop</span></div>
+<pre class="code">#include &lt;stdint.h&gt;        <span class="c">// uint32_t is always exactly 32 bits; plain int varies by CPU</span>
+#define BLINK_MS 500       <span class="c">// named constant instead of a bare number</span>
+
+static uint32_t add(...)   <span class="c">// static function: private to this file</span>
+
+int main(void) {
+    uint32_t local = 3;
+    while (1) {            <span class="c">// set up once, then loop forever</span>
+        ...
+    }
+}</pre>
+      <p><code>while (1)</code>, the super loop, is the basic shape of bare-metal firmware. Your first blink project has exactly this structure.</p>
+    </div>
+
+    <p>In a CubeIDE project you don't write the startup code yourself. The generated versions do the same steps:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>This demo</th><th>CubeIDE project</th></tr></thead>
+        <tbody>
+          <tr><td><code>startup.c</code></td><td><code>startup_stm32h735igkx.s</code> (assembly, same steps)</td></tr>
+          <tr><td>4-entry <code>vector_table</code></td><td>Full table, every interrupt</td></tr>
+          <tr><td><code>h735_min.ld</code></td><td><code>STM32H735IGKX_FLASH.ld</code></td></tr>
+          <tr><td><code>main()</code></td><td>Generated <code>main.c</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+<pre class="code">Reset_Handler
+  → SystemInit()               <span class="c">FPU access, vector table location</span>
+  → copy .data, zero .bss
+  → main()
+       → HAL_Init()            <span class="c">HAL library + 1 ms SysTick</span>
+       → SystemClock_Config()  <span class="c">PLLs → 550 MHz (Week 3)</span>
+       → MX_GPIO_Init()        <span class="c">pins, e.g. PC3 for LD1</span>
+       → MX_USART3_UART_Init() <span class="c">UART to the virtual COM port</span>
+       → while (1) { ... }     <span class="c">your code goes here</span></pre>
+    <div class="fix">
+      <strong>CubeIDE rule</strong>
+      <p>Write your code only between <code>/* USER CODE BEGIN */</code> and <code>/* USER CODE END */</code> comments. When CubeMX regenerates the file, it keeps only what's between those markers.</p>
+    </div>
+    <div class="callout">
+      <strong>Exercises</strong>
+      <p>1. Add <code>uint32_t boot_count = 1;</code> and find its RAM address and its starting value in the .hex. 2. Comment out the copy loop and predict <code>blink_ms</code> on real hardware. 3. On the board, set a breakpoint on <code>Reset_Handler</code> in CubeIDE and step until <code>main()</code>.</p>
+    </div>
+  </section>
+
+  <section id="sections">
+    <div class="sec-head"><span class="sec-num"></span><h2>Memory sections reference</h2><span class="tag">h735/00-memory-sections</span></div>
+    <p>The companion demo puts one of every kind of C object in a file and checks where each lands (<code>-O0</code>, so nothing is optimized away):</p>
+<pre class="code">const uint32_t baud_rate = 115200;      <span class="c">// .rodata</span>
+const char     banner[] = "Hello H735"; <span class="c">// .rodata  11 B incl. \0</span>
+uint32_t blink_ms  = 500;               <span class="c">// .data</span>
+uint8_t  led_state = 1;                 <span class="c">// .data</span>
+uint32_t tick_count;                    <span class="c">// .bss</span>
+uint8_t  rx_buf[256];                   <span class="c">// .bss</span>
+uint32_t error_count = 0;               <span class="c">// .bss   = 0 counts as zero-init</span>
+
+uint32_t add(uint32_t a, uint32_t b) {  <span class="c">// .text   30 B</span>
+    uint32_t sum = a + b;               <span class="c">// stack</span>
+    return sum;
+}
+void demo(void) {                       <span class="c">// .text   74 B</span>
+    static uint32_t calls;              <span class="c">// .bss    static local</span>
+    static uint32_t start = 7;          <span class="c">// .data   static local</span>
+    uint8_t temp[16];                   <span class="c">// stack   (sub sp, #24)</span>
+    uint8_t *p = malloc(64);            <span class="c">// p on stack, 64 B on heap</span>
+    ...
+}</pre>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Section</th><th>What goes in</th><th>Stored in</th><th>At startup</th><th>Demo total</th></tr></thead>
+        <tbody>
+          <tr><td><strong>.text</strong></td><td>Functions</td><td>Flash</td><td>Runs from flash via I-cache</td><td>104 B</td></tr>
+          <tr><td><strong>.rodata</strong></td><td><code>const</code> data, strings</td><td>Flash</td><td>Read from flash</td><td>15 B</td></tr>
+          <tr><td><strong>.data</strong></td><td>Globals and statics with a non-zero value</td><td>Flash + RAM</td><td>Copied flash → RAM</td><td>12 B</td></tr>
+          <tr><td><strong>.bss</strong></td><td>Globals and statics with no value or <code>= 0</code></td><td>RAM only</td><td>Zeroed</td><td>268 B</td></tr>
+          <tr><td><strong>Stack</strong></td><td>Locals, function arguments, return addresses</td><td>RAM</td><td>Grows down from <code>_estack</code></td><td>at run time</td></tr>
+          <tr><td><strong>Heap</strong></td><td><code>malloc()</code> memory</td><td>RAM</td><td>Allocated while running</td><td>at run time</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul class="plain">
+      <li><code>.bss</code> costs no flash. <code>.data</code> costs flash and RAM. Mark tables <code>const</code> to keep them in flash only.</li>
+      <li>A <code>static</code> local behaves like a global (it keeps its value between calls) but is visible only inside its function.</li>
+      <li>Keep big buffers out of functions, since a stack overflow shows up as a hard fault. Avoid <code>malloc()</code> in firmware: the heap fragments, and most automotive coding standards ban it.</li>
+    </ul>
+  </section>
+
+  <section id="quiz">
+    <div class="sec-head"><span class="sec-num"></span><h2>Check yourself</h2><span class="tag">tap to reveal</span></div>
+    <div class="quiz">
+      <details><summary>Which stage turns <code>#define BLINK_MS 500</code> into <code>500</code>?</summary><p>The preprocessor (stage 1). The compiler never sees the name BLINK_MS.</p></details>
+      <details><summary>You get "undefined reference to HAL_GPIO_TogglePin". Which stage failed, and what's the usual cause?</summary><p>The linker. The function is declared in a header, but no .o file in the build defines it, usually because the HAL source file isn't part of the project.</p></details>
+      <details><summary>Why is the .elf 9,452 bytes when the .bin is only 164?</summary><p>The .elf also carries headers, the section table and the symbol table (and debug info when built with -g). Only the 164 bytes of loadable content go into flash.</p></details>
+      <details><summary>You flash a .bin at 0x0800 1000 by mistake. What happens at reset?</summary><p>The CPU reads its stack pointer and reset address from 0x0800 0000, not from your image, so it won't start your program. A .bin carries no address, so the start address you give the programmer must be right. A .hex or .elf carries its own addresses.</p></details>
+      <details><summary>Why is blink_ms's initial value in the .hex but tick_count isn't?</summary><p>blink_ms is in .data, whose value 500 must be stored in flash and copied to RAM at startup. tick_count is in .bss, which is just zeroed at startup, so nothing needs storing.</p></details>
+    </div>
+  </section>
+
+  <footer>
+    <span class="mono">Project: h735/00-build-pipeline (build.sh, inspect.sh)</span>
+    <ul>
+      <li>Outputs from arm-none-eabi-gcc 13.2.1 in WSL Ubuntu 24.04, <code>-mcpu=cortex-m7 -mthumb -O1</code></li>
+      <li>Linker script cut down from CubeIDE 1.13.1 <code>stm32h735xg_flash.ld</code></li>
+      <li>Companion demo: h735/00-memory-sections (<code>-O0</code>)</li>
+    </ul>
+    <span>Previous: <a href="https://claude.ai/artifact/EeTwZtDSf1suXydwR3XbD6">H735 Memories</a> · <a href="https://claude.ai/artifact/CFJY3hw8TaLYpdDibc7jom">Cortex-M7 Core</a></span>
+  </footer>
+</div>

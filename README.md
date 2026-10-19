@@ -3,7 +3,7 @@
 A hands-on learning journey from Linux and bare-metal MCU basics to a complete
 automotive **ECU + telematics unit** built on two STM32 boards.
 
-- **Start:** 19 Oct 2026 · **Pace:** 12 hrs/week · **Target finish:** Aug 2027 (~42 weeks)
+- **Start:** 19 Oct 2026 · **Pace:** 12 hrs/week · **Target finish:** Aug 2027 (~43 weeks)
 - **Progress tracker:** [PROGRESS.md](PROGRESS.md)
 - **Laptop setup:** [docs/setup.md](docs/setup.md)
 - **Datasheets, manuals, schematics:** [docs/hardware/](docs/hardware/README.md)
@@ -50,12 +50,12 @@ Three tracks run in parallel, then merge into the capstone.
 
 | Phase | Weeks | Dates | Focus | Milestone |
 |---|---|---|---|---|
-| 1. Foundations | 1–6 | 19 Oct – 29 Nov 2026 | Linux shell & scripting · H735 GPIO, clocks, interrupts, UART, timers, PWM, RTC, DAC | Build & flash H7 firmware from the command line |
-| 2. Both boards | 7–14 | 30 Nov 2026 – 24 Jan 2027 | MP257 first boot, boot chain, SDK, userspace I/O, kernel build, Device Tree · H735 ADC/DMA, W25Q flash driver, cache/MPU, FreeRTOS, GPS, USB, OctoSPI, TouchGFX | Own service on MP2; RTOS + GUI on H7 |
-| 3. Kernel & CAN | 15–20 | 25 Jan – 7 Mar 2027 | Kernel modules, char & platform drivers · LwIP Ethernet · CAN FD + SocketCAN | Own driver via DT; boards talk over CAN |
-| 4. Automotive & Yocto | 21–29 | 8 Mar – 9 May 2027 | UDS over ISO-TP · J1939 · Yocto layers & images · M33 remoteproc/RPMsg · UDS bootloader · Qt6 | Custom Yocto image; H7 flashed over UDS |
-| 5. Connectivity | 30–34 | 10 May – 13 Jun 2027 | SIM7600 LTE · MQTT · secure boot / OTA | Telemetry reaches an MQTT broker over LTE |
-| 6. Capstone | 35–42 | 14 Jun – 8 Aug 2027 | ECU + telematics unit | Full system demo |
+| 1. Foundations | 1–7 | 19 Oct – 6 Dec 2026 | Linux shell & scripting · H735 GPIO, clocks, interrupts, **linker scripts & map files (week 5)**, UART, timers, PWM, RTC, DAC | Build & flash H7 firmware from the command line; place code and data in any memory region |
+| 2. Both boards | 8–15 | 7 Dec 2026 – 31 Jan 2027 | MP257 first boot, boot chain, SDK, userspace I/O, kernel build, Device Tree · H735 ADC/DMA, W25Q flash driver, cache/MPU, FreeRTOS, GPS, USB, OctoSPI, TouchGFX | Own service on MP2; RTOS + GUI on H7 |
+| 3. Kernel & CAN | 16–21 | 1 Feb – 14 Mar 2027 | Kernel modules, char & platform drivers · LwIP Ethernet · CAN FD + SocketCAN | Own driver via DT; boards talk over CAN |
+| 4. Automotive & Yocto | 22–30 | 15 Mar – 16 May 2027 | UDS over ISO-TP · J1939 · Yocto layers & images · M33 remoteproc/RPMsg · UDS bootloader · Qt6 | Custom Yocto image; H7 flashed over UDS |
+| 5. Connectivity | 31–35 | 17 May – 20 Jun 2027 | SIM7600 LTE · MQTT · secure boot / OTA | Telemetry reaches an MQTT broker over LTE |
+| 6. Capstone | 36–43 | 21 Jun – 15 Aug 2027 | ECU + telematics unit | Full system demo |
 
 Week-by-week tasks are in [PROGRESS.md](PROGRESS.md).
 

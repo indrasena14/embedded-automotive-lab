@@ -6,8 +6,8 @@ Host: Windows 11, i7-11800H (8C/16T), 16 GB RAM.
 | Tool | Version | Notes |
 |---|---|---|
 | STM32CubeIDE | 1.13.1 | ⚠️ Update to latest (needed for MP2 M33 support) |
-| STM32CubeProgrammer | 2.14.0 | ⚠️ Update before week 7 (2.14 does not support STM32MP25) |
-| TouchGFX Designer | — | ☐ Install before week 14 |
+| STM32CubeProgrammer | 2.14.0 | ⚠️ Update before week 8 (2.14 does not support STM32MP25) |
+| TouchGFX Designer | — | ☐ Install before week 15 |
 | Tera Term / PuTTY | 5.5.2 / 0.83 | Serial console |
 | Saleae Logic 2 | 2.4.44 | Logic analyzer software |
 | MQTT Explorer / MQTTX | — | MQTT testing |

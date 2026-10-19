@@ -1,6 +1,6 @@
 # Capstone: ECU + Telematics Control Unit
 
-Starts in week 35. See the architecture diagram in the main [README](../README.md#capstone-ecu--telematics-control-unit).
+Starts in week 36. See the architecture diagram in the main [README](../README.md#capstone-ecu--telematics-control-unit).
 
 Planned structure:
 ```

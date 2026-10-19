@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A personal **learning repo**. The goal is to go from Linux and bare-metal basics to an automotive ECU + telematics system on two STM32 boards over ~42 weeks (started 19 Oct 2026, 12 h/week). The user is learning, so explain *why* things work (registers, reference manual sections, boot flow) instead of only producing code. Point to the relevant RM or datasheet chapter when possible.
+A personal **learning repo**. The goal is to go from Linux and bare-metal basics to an automotive ECU + telematics system on two STM32 boards over ~43 weeks (started 19 Oct 2026, 12 h/week). The user is learning, so explain *why* things work (registers, reference manual sections, boot flow) instead of only producing code. Point to the relevant RM or datasheet chapter when possible.
 
 - [README.md](README.md): objectives, hardware, 6-phase roadmap, capstone architecture
 - [PROGRESS.md](PROGRESS.md): week-by-week checklist. When a task is finished, tick its box (`- [x]`)
@@ -19,7 +19,7 @@ A personal **learning repo**. The goal is to go from Linux and bare-metal basics
 | A | `linux-basics/` | PC Linux (WSL2 Ubuntu 24.04): shell, scripting, C system programming |
 | B | `h735/` | **STM32H735G-DK**: Cortex-M7 MCU, bare-metal/HAL, FreeRTOS, TouchGFX, LwIP, CAN FD |
 | C | `mp257/` | **STM32MP257F-DK**: 2× Cortex-A35 running OpenSTLinux, plus a Cortex-M33 co-processor |
-| — | `capstone/` | Both boards together (weeks 35–42) |
+| — | `capstone/` | Both boards together (weeks 36–43) |
 
 External modules: SIM7600G-H (LTE), NEO-M8N (GPS), W25Q128/256 (SPI NOR flash), CAN-FD transceivers.
 
@@ -47,7 +47,7 @@ The host is Windows 11 with WSL2 Ubuntu 24.04 (12 GB RAM, 16 GB swap via `%USERP
 - **Yocto and MP257 SDK builds** must run inside the WSL Linux filesystem (`~/`), never under `/mnt/c` (far too slow).
 
 Known gaps, documented in [docs/setup.md](docs/setup.md):
-- **STM32CubeProgrammer 2.14** cannot flash the STM32MP25; it needs updating before week 7.
+- **STM32CubeProgrammer 2.14** cannot flash the STM32MP25; it needs updating before week 8.
 - **TouchGFX Designer** is not installed yet.
 - **CubeIDE** needs updating for MP2 M33 support.
 

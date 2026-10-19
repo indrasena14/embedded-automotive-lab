@@ -44,13 +44,13 @@ Board page: [STM32MP257F-DK](https://www.st.com/en/evaluation-tools/stm32mp257f-
 
 | Folder | Document | Needed by |
 |---|---|---|
-| `h735/` | Microchip **MCP2562FD** datasheet (on-board CAN FD transceiver) | Week 19 |
-| `h735/` | **AN4839**: Level 1 cache on STM32F7 and STM32H7 | Week 9 |
-| `h735/` | **AN4838**: Managing memory protection unit in STM32 MCUs | Week 9 |
-| `modules/` | **W25Q128JV** / **W25Q256JV** datasheet (Winbond) | Week 8 |
-| `modules/` | **NEO-M8** datasheet + **u-blox M8 receiver description** (NMEA/UBX protocol) | Week 11 |
-| `modules/` | Datasheet for **your CAN-FD transceiver module's** chip (part number is printed on the chip) | Week 19 |
-| `modules/` | **SIM7600 series AT command manual** + **SIM7600 hardware design** (SIMCom) | Week 30 |
+| `h735/` | Microchip **MCP2562FD** datasheet (on-board CAN FD transceiver) | Week 20 |
+| `h735/` | **AN4839**: Level 1 cache on STM32F7 and STM32H7 | Week 10 |
+| `h735/` | **AN4838**: Managing memory protection unit in STM32 MCUs | Week 10 |
+| `modules/` | **W25Q128JV** / **W25Q256JV** datasheet (Winbond) | Week 9 |
+| `modules/` | **NEO-M8** datasheet + **u-blox M8 receiver description** (NMEA/UBX protocol) | Week 12 |
+| `modules/` | Datasheet for **your CAN-FD transceiver module's** chip (part number is printed on the chip) | Week 20 |
+| `modules/` | **SIM7600 series AT command manual** + **SIM7600 hardware design** (SIMCom) | Week 31 |
 
 The MP257 software docs (Starter / Developer / Distribution Packages, Device Tree, RPMsg) live on the [ST wiki](https://wiki.st.com/stm32mpu), not in PDFs, so there's nothing more to download for that board.
 
