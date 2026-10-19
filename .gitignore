@@ -75,3 +75,6 @@ tmp/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Vendor PDFs (copyrighted, large) - links in docs/hardware/README.md
+docs/hardware/**/*.pdf

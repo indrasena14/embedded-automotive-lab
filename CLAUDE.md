@@ -9,6 +9,7 @@ A personal **learning repo**. The goal is to go from Linux and bare-metal basics
 - [README.md](README.md): objectives, hardware, 6-phase roadmap, capstone architecture
 - [PROGRESS.md](PROGRESS.md): week-by-week checklist. When a task is finished, tick its box (`- [x]`)
 - [docs/setup.md](docs/setup.md): laptop toolchain, WSL config, usbipd USB passthrough
+- [docs/hardware/](docs/hardware/README.md): user manuals, schematics, datasheets and reference manuals for both boards. The PDFs are stored locally and git-ignored. When answering pin, register or electrical questions, read the PDF in `docs/hardware/h735/` or `docs/hardware/mp257/` if it's present, and cite the section. poppler isn't installed, so the Read tool can't open PDFs here. Extract text with PyMuPDF instead (`import fitz`, installed in the user's Windows Python): run the script with `python -P`, not `-I`, because `-I` hides the user site-packages where fitz lives. Search for the relevant pages first; the reference manuals are thousands of pages
 
 ## Hardware and tracks
 
@@ -56,3 +57,5 @@ This laptop also has a work GitHub account (`ambati-indrasena-reddy-simpleenergy
 - **Remote URL** embeds the username: `https://indrasena14@github.com/indrasena14/embedded-automotive-lab.git`.
 
 Don't change these settings, and never commit or push this repo with the work identity.
+
+**Commit messages:** never add a `Co-Authored-By: Claude` trailer or any other Claude/AI attribution line. Commits are authored by the user alone.

@@ -6,6 +6,7 @@ automotive **ECU + telematics unit** built on two STM32 boards.
 - **Start:** 19 Oct 2026 · **Pace:** 12 hrs/week · **Target finish:** Aug 2027 (~42 weeks)
 - **Progress tracker:** [PROGRESS.md](PROGRESS.md)
 - **Laptop setup:** [docs/setup.md](docs/setup.md)
+- **Datasheets, manuals, schematics:** [docs/hardware/](docs/hardware/README.md)
 
 ## Objective
 
