@@ -9,6 +9,7 @@ A personal **learning repo**. The goal is to go from Linux and bare-metal basics
 - [README.md](README.md): objectives, hardware, 6-phase roadmap, capstone architecture
 - [PROGRESS.md](PROGRESS.md): week-by-week checklist. When a task is finished, tick its box (`- [x]`)
 - [docs/setup.md](docs/setup.md): laptop toolchain, WSL config, usbipd USB passthrough
+- [docs/learning/](docs/learning/README.md): index of study pages (published Claude artifacts), diagrams and design docs. When you publish a new study artifact, save its HTML source here as `NN-topic.html`, publish from that file, and add a row with the artifact link to the index
 - [docs/hardware/](docs/hardware/README.md): user manuals, schematics, datasheets and reference manuals for both boards. The PDFs are stored locally and git-ignored. When answering pin, register or electrical questions, read the PDF in `docs/hardware/h735/` or `docs/hardware/mp257/` if it's present, and cite the section. poppler isn't installed, so the Read tool can't open PDFs here. Extract text with PyMuPDF instead (`import fitz`, installed in the user's Windows Python): run the script with `python -P`, not `-I`, because `-I` hides the user site-packages where fitz lives. Search for the relevant pages first; the reference manuals are thousands of pages
 
 ## Hardware and tracks

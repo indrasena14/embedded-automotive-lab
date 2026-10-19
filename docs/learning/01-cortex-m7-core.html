@@ -1,0 +1,334 @@
+<title>Cortex-M7 Core</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a single study column like an annotated datasheet page; the datasheet line is decoded term by term, each term a section. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5a6577;
+  --rule: #d9dee6;
+  --accent: #0b6e69;        /* solder-mask teal */
+  --accent-soft: #e2f1ef;
+  --copper: #a8561c;        /* trace copper, used for warnings only */
+  --copper-soft: #f8ebe1;
+  --core: #e8eefb;          /* Arm core block */
+  --core-line: #4565b5;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151c; --surface: #181e27; --fg: #e4e8ef; --muted: #9aa5b6; --rule: #2a3340;
+    --accent: #4fc2b8; --accent-soft: #15312f; --copper: #e39a63; --copper-soft: #33241a;
+    --core: #1b2540; --core-line: #7e9be0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151c; --surface: #181e27; --fg: #e4e8ef; --muted: #9aa5b6; --rule: #2a3340;
+  --accent: #4fc2b8; --accent-soft: #15312f; --copper: #e39a63; --copper-soft: #33241a;
+  --core: #1b2540; --core-line: #7e9be0; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 16px/1.65 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 72px;
+}
+.page { max-width: 760px; margin: 0 auto; display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.4rem, 7vw, 3.4rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.65rem; font-weight: 600; }
+h3 { font-size: 1.15rem; font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+.eyebrow {
+  font: 500 0.78rem/1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+}
+header { display: grid; gap: 18px; }
+.lede { font-size: 1.1rem; color: var(--muted); }
+
+/* the datasheet excerpt, decoded */
+.excerpt {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 20px 22px; display: grid; gap: 12px;
+}
+.excerpt .src { font: 500 0.75rem var(--font-mono); color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+.excerpt p { font-family: var(--font-mono); font-size: 0.92rem; line-height: 2.1; max-width: none; }
+.term {
+  text-decoration: none; color: var(--fg); background: var(--accent-soft);
+  border-bottom: 2px solid var(--accent); padding: 1px 4px; border-radius: 2px; white-space: nowrap;
+}
+.term sup { font-size: 0.7em; color: var(--accent); font-weight: 500; margin-left: 2px; }
+.term:hover { background: var(--accent); color: var(--surface); }
+.term:hover sup { color: var(--surface); }
+
+section { display: grid; gap: 16px; scroll-margin-top: 24px; }
+.sec-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--rule); padding-bottom: 10px; }
+.sec-num { font: 500 0.85rem var(--font-mono); color: var(--accent); min-width: 2ch; }
+.sec-head .tag { margin-left: auto; font: 0.8rem var(--font-mono); color: var(--muted); white-space: nowrap; }
+
+ul.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; max-width: 65ch; }
+
+/* chip diagram */
+.diagram-wrap { overflow-x: auto; }
+.chip {
+  min-width: 560px; border: 2px solid var(--fg); border-radius: 4px; padding: 14px; display: grid; gap: 12px;
+  background: var(--surface); position: relative;
+}
+.chip-label { font: 600 0.8rem var(--font-mono); letter-spacing: 0.06em; }
+.core-box {
+  background: var(--core); border: 2px solid var(--core-line); border-radius: 4px; padding: 12px 14px; display: grid; gap: 8px;
+}
+.core-box .who { font: 0.72rem var(--font-mono); color: var(--core-line); text-transform: uppercase; letter-spacing: 0.08em; }
+.core-box .row { display: flex; flex-wrap: wrap; gap: 6px; }
+.blk { font: 500 0.78rem var(--font-mono); border: 1px solid var(--core-line); border-radius: 3px; padding: 3px 8px; background: var(--surface); }
+.bus { text-align: center; font: 0.75rem var(--font-mono); color: var(--muted); border-left: 2px dashed var(--muted); width: 0; margin: 0 auto; height: 22px; }
+.bus-label { text-align: center; font: 0.75rem var(--font-mono); color: var(--muted); margin-top: -8px; }
+.periph { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.periph div { border: 1px solid var(--rule); border-radius: 3px; padding: 8px 6px; font: 0.76rem/1.35 var(--font-mono); text-align: center; background: var(--bg); }
+.periph-note { font: 0.72rem var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* tables */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; min-width: 480px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 0.78rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+td.mine { color: var(--accent); font-weight: 600; }
+tbody tr:hover { background: var(--surface); }
+
+/* cache hit/miss strip */
+.cache-flow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.flow { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; display: grid; gap: 8px; }
+.flow h3 { font-size: 1rem; }
+.flow .path { font: 0.82rem/1.8 var(--font-mono); }
+.flow .cost { font: 600 0.85rem var(--font-mono); }
+.hit .cost { color: var(--accent); }
+.miss .cost { color: var(--copper); }
+
+.callout {
+  background: var(--copper-soft); border-left: 3px solid var(--copper); padding: 14px 16px; border-radius: 0 6px 6px 0;
+  display: grid; gap: 6px; max-width: 65ch;
+}
+.callout strong { color: var(--copper); font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.calc {
+  font: 1.05rem var(--font-mono); background: var(--surface); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline;
+}
+.calc b { color: var(--accent); font-weight: 500; }
+.calc .eq { color: var(--muted); }
+
+/* quiz */
+.quiz { display: grid; gap: 10px; }
+details { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; }
+summary { cursor: pointer; font-weight: 500; list-style: none; display: flex; gap: 10px; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+"; font-family: var(--font-mono); color: var(--accent); width: 1ch; }
+details[open] summary::before { content: "−"; }
+details p { margin-top: 10px; color: var(--muted); padding-left: calc(1ch + 10px); }
+
+footer { border-top: 1px solid var(--rule); padding-top: 18px; display: grid; gap: 8px; font-size: 0.9rem; color: var(--muted); }
+footer ul { margin: 0; padding-left: 1.2em; }
+
+@media (max-width: 560px) {
+  .cache-flow { grid-template-columns: 1fr; }
+  .sec-head { flex-wrap: wrap; }
+  .sec-head .tag { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow"><span>STM32H735IG</span><span>DS13312 Rev 4 · page 1</span><span>Week 1 · Basics</span></div>
+    <h1>Cortex-M7 Core</h1>
+    <p class="lede">The first paragraph of the H735 datasheet packs nine ideas into one sentence. This page decodes it term by term. Tap any highlighted term to jump to its explanation.</p>
+  </header>
+
+  <div class="excerpt" aria-label="Datasheet excerpt">
+    <div class="src">Datasheet excerpt · Features → Core</div>
+    <p>
+      <a class="term" href="#bits">32-bit<sup>3</sup></a>
+      <a class="term" href="#arm">Arm® Cortex®-M7<sup>2</sup></a>
+      <a class="term" href="#core">CPU<sup>1</sup></a> with
+      <a class="term" href="#fpu">DP-FPU<sup>4</sup></a>,
+      <a class="term" href="#cache">L1 cache: 32-Kbyte data cache and 32-Kbyte instruction cache<sup>5</sup></a>
+      allowing <a class="term" href="#cache">0-wait state execution<sup>5</sup></a> from embedded flash memory and external memories,
+      <a class="term" href="#freq">frequency up to 550 MHz<sup>6</sup></a>,
+      <a class="term" href="#mpu">MPU<sup>7</sup></a>,
+      <a class="term" href="#dmips">1177 DMIPS/2.14 DMIPS/MHz (Dhrystone 2.1)<sup>8</sup></a>, and
+      <a class="term" href="#dsp">DSP instructions<sup>9</sup></a>
+    </p>
+  </div>
+
+  <section id="core">
+    <div class="sec-head"><span class="sec-num">01</span><h2>What a core is</h2><span class="tag">CPU</span></div>
+    <p>The <strong>core</strong> is the CPU: the part of the chip that runs your instructions. It fetches an instruction, decodes it, executes it, and repeats. Everything else on the chip (memories, GPIO, UART, CAN, timers) is built around it and talks to it over internal buses.</p>
+    <div class="diagram-wrap" role="img" aria-label="Block diagram: the Arm Cortex-M7 core sits inside the STM32H735IG chip, connected by buses to ST's memories and peripherals">
+      <div class="chip">
+        <div class="chip-label">STM32H735IG · the chip (MCU)</div>
+        <div class="core-box">
+          <div class="who">Cortex-M7 core · designed by Arm</div>
+          <div class="row">
+            <span class="blk">CPU pipeline</span><span class="blk">Registers r0–r15</span><span class="blk">FPU</span>
+            <span class="blk">NVIC</span><span class="blk">SysTick</span><span class="blk">MPU</span>
+          </div>
+          <div class="row"><span class="blk">L1 I-cache 32 KB</span><span class="blk">L1 D-cache 32 KB</span></div>
+        </div>
+        <div class="bus" aria-hidden="true"></div>
+        <div class="bus-label">AXI / AHB / APB buses</div>
+        <div class="periph-note">Added by ST</div>
+        <div class="periph">
+          <div>Flash<br>1 MB</div><div>RAM<br>564 KB</div><div>GPIO · UART<br>SPI · I2C</div><div>CAN FD<br>Timers</div><div>Ethernet · LCD<br>OctoSPI · ADC</div>
+        </div>
+      </div>
+    </div>
+    <p>This split is why your documents are separate. <strong>PM0253</strong> describes the core and is the same for every chip with a Cortex-M7. <strong>RM0468</strong> describes ST's parts around it.</p>
+  </section>
+
+  <section id="arm">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Who made what</h2><span class="tag">Arm® Cortex®-M7</span></div>
+    <ul class="plain">
+      <li><strong>Arm</strong> designs CPU cores but doesn't make chips. It licenses its designs.</li>
+      <li><strong>ST</strong> licenses the Cortex-M7, adds memories and peripherals, and manufactures the result as the STM32H735. NXP, Microchip and others license the same core, so core knowledge carries over between vendors.</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Family</th><th>Meaning</th><th>Built for</th><th>On your boards</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Cortex-M</strong></td><td>Microcontroller</td><td>Real-time control, low power, bare-metal or RTOS</td><td class="mine">M7 on the H735 · M33 on the MP257</td></tr>
+          <tr><td><strong>Cortex-R</strong></td><td>Real-time</td><td>Hard-deadline safety systems (airbags, brakes)</td><td>—</td></tr>
+          <tr><td><strong>Cortex-A</strong></td><td>Application</td><td>Full operating systems: Linux, Android</td><td class="mine">A35 ×2 on the MP257</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Within the M family the M7 is the most powerful: M0 &lt; M3 &lt; M4 &lt; M33 &lt; M7.</p>
+  </section>
+
+  <section id="bits">
+    <div class="sec-head"><span class="sec-num">03</span><h2>32-bit</h2><span class="tag">register width</span></div>
+    <ul class="plain">
+      <li>Registers are 32 bits wide, so the CPU handles a 32-bit number in one instruction.</li>
+      <li>Addresses are 32 bits too: a <strong>4 GB address space</strong> (2<sup>32</sup> bytes).</li>
+      <li>Flash, RAM and every peripheral register live at an address. Writing a value to a GPIOC register is what turns LD1 on. This memory map is the subject of Week 2's register-level blink.</li>
+    </ul>
+  </section>
+
+  <section id="fpu">
+    <div class="sec-head"><span class="sec-num">04</span><h2>DP-FPU</h2><span class="tag">double-precision floating point</span></div>
+    <p>A floating-point unit is hardware for decimal math. Without one, <code>3.14f * 2.5f</code> runs as a software routine of dozens of instructions. With one, it's about one instruction.</p>
+    <p><strong>Double precision</strong> means both <code>float</code> (32-bit) and <code>double</code> (64-bit) run in hardware. Many smaller cores, such as the M4, accelerate only <code>float</code>. It matters for GPS math, filters and motor control.</p>
+  </section>
+
+  <section id="cache">
+    <div class="sec-head"><span class="sec-num">05</span><h2>L1 cache and 0-wait states</h2><span class="tag">32 KB I + 32 KB D</span></div>
+    <p>The core runs at 550 MHz, but flash is much slower. Without help the CPU stalls for several cycles on every read; each stalled cycle is a <strong>wait state</strong>. A <strong>cache</strong> is a small, very fast memory inside the core that keeps copies of recently used instructions (I-cache) and data (D-cache). L1 means level 1, the cache closest to the CPU.</p>
+    <div class="cache-flow">
+      <div class="flow hit">
+        <h3>Cache hit</h3>
+        <div class="path">CPU → L1 cache ✓</div>
+        <div class="cost">0 wait states</div>
+      </div>
+      <div class="flow miss">
+        <h3>Cache miss</h3>
+        <div class="path">CPU → L1 cache ✗ → flash / RAM / OctoSPI → copy into cache</div>
+        <div class="cost">several wait states</div>
+      </div>
+    </div>
+    <p>"0-wait state execution" in the datasheet means cache hits. It also applies to the external OctoSPI flash and HyperRAM on your board, which are slower still.</p>
+    <div class="callout">
+      <strong>Week 9 pitfall: cache coherency</strong>
+      <p>The DMA copies data straight into RAM without the CPU. If the CPU then reads that address, it can get a stale copy from its D-cache. This is one of the most common STM32H7 bugs. The MPU (section 07) is the usual fix.</p>
+    </div>
+  </section>
+
+  <section id="freq">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Up to 550 MHz</h2><span class="tag">clock frequency</span></div>
+    <div class="calc"><span>1 cycle</span><span class="eq">=</span><span>1 / 550 000 000 s</span><span class="eq">≈</span><b>1.8 ns</b></div>
+    <ul class="plain">
+      <li>550 MHz is a <strong>maximum</strong>. You set the real speed in the clock tree (Week 3).</li>
+      <li>After reset the chip runs on its internal 64 MHz oscillator (HSI).</li>
+      <li>A faster clock uses more power, so products often run below the maximum.</li>
+    </ul>
+  </section>
+
+  <section id="mpu">
+    <div class="sec-head"><span class="sec-num">07</span><h2>MPU</h2><span class="tag">memory protection unit</span></div>
+    <p>The MPU lets you set rules for regions of memory: read-only, never execute code from here, don't cache this region. It catches bugs such as a stack overflowing into other data, and with an RTOS it keeps tasks from damaging each other's memory. On the H7 it also controls cacheability, which is the standard fix for the DMA problem in section 05.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>MPU · Cortex-M7</th><th>MMU · Cortex-A35</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Does</strong></td><td>Protects memory regions</td><td>Protects memory and creates virtual addresses</td></tr>
+          <tr><td><strong>Can run</strong></td><td>Bare-metal or an RTOS</td><td class="mine">Linux</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Linux needs an MMU. That's the main reason your H735 can't run Linux and your MP257 can.</p>
+  </section>
+
+  <section id="dmips">
+    <div class="sec-head"><span class="sec-num">08</span><h2>DMIPS</h2><span class="tag">Dhrystone 2.1 benchmark</span></div>
+    <p><strong>Dhrystone</strong> is an old, standard benchmark for comparing CPUs. <strong>DMIPS</strong> means Dhrystone millions of instructions per second. DMIPS/MHz measures how much work the core does per clock cycle.</p>
+    <div class="calc"><span>2.14 DMIPS/MHz</span><span class="eq">×</span><span>550 MHz</span><span class="eq">≈</span><b>1177 DMIPS</b></div>
+    <p>A Cortex-M4 manages about 1.25 DMIPS/MHz, so the M7 does about 70% more work per clock. The reason is its <strong>6-stage superscalar pipeline</strong>, which can execute two instructions at once.</p>
+  </section>
+
+  <section id="dsp">
+    <div class="sec-head"><span class="sec-num">09</span><h2>DSP instructions</h2><span class="tag">digital signal processing</span></div>
+    <ul class="plain">
+      <li><strong>MAC</strong> (multiply-accumulate): <code>sum += a * b</code> in one instruction, the core operation of a filter.</li>
+      <li><strong>SIMD</strong> (single instruction, multiple data): two 16-bit or four 8-bit values processed at once.</li>
+      <li><strong>Saturating math</strong>: on overflow, the value stays at the maximum instead of wrapping to a negative number. Useful in audio and control.</li>
+    </ul>
+    <p>ST's <strong>CMSIS-DSP</strong> library uses these for filters, FFTs and control loops.</p>
+  </section>
+
+  <section id="compare">
+    <div class="sec-head"><span class="sec-num"></span><h2>Your three cores</h2><span class="tag">H735 + MP257</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Cortex-M7 · H735</th><th>Cortex-M33 · MP257</th><th>Cortex-A35 · MP257</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Family</strong></td><td>M</td><td>M</td><td>A</td></tr>
+          <tr><td><strong>Width</strong></td><td>32-bit</td><td>32-bit</td><td>64-bit</td></tr>
+          <tr><td><strong>Speed</strong></td><td>550 MHz</td><td>400 MHz</td><td>1.5 GHz ×2</td></tr>
+          <tr><td><strong>Memory protection</strong></td><td>MPU</td><td>MPU + TrustZone</td><td>MMU</td></tr>
+          <tr><td><strong>Capstone role</strong></td><td>ECU firmware</td><td>Real-time CAN helper</td><td>Linux: GPS, LTE, MQTT, Qt</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <div class="sec-head"><span class="sec-num"></span><h2>Check yourself</h2><span class="tag">tap to reveal</span></div>
+    <div class="quiz">
+      <details><summary>Who designed the Cortex-M7, and who designed the UART on your chip?</summary><p>Arm designed the core. ST designed the UART and every other peripheral around it.</p></details>
+      <details><summary>Why does the H735 need a cache to run at 550 MHz?</summary><p>Flash is much slower than the core. Without a cache the CPU would stall for several wait states on every read; a cache hit returns data with 0 wait states.</p></details>
+      <details><summary>Why can the MP257's A35 run Linux but the H735 can't?</summary><p>Linux needs an MMU for virtual memory. The A35 has one; the M7 only has an MPU.</p></details>
+      <details><summary>At 550 MHz, how long is one clock cycle?</summary><p>1 / 550 000 000 s ≈ 1.8 ns.</p></details>
+    </div>
+  </section>
+
+  <footer>
+    <span class="mono">Sources in docs/hardware/h735/</span>
+    <ul>
+      <li>DS13312: STM32H735xG datasheet, page 1 (Features → Core)</li>
+      <li>PM0253: Cortex-M7 programming manual (core, NVIC, SysTick, MPU, cache)</li>
+      <li>RM0468: STM32H723/735 reference manual (ST's peripherals)</li>
+    </ul>
+    <span>Next topic: the Memories paragraph (flash, RAM, TCM).</span>
+  </footer>
+</div>

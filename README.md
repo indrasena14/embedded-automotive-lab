@@ -7,6 +7,7 @@ automotive **ECU + telematics unit** built on two STM32 boards.
 - **Progress tracker:** [PROGRESS.md](PROGRESS.md)
 - **Laptop setup:** [docs/setup.md](docs/setup.md)
 - **Datasheets, manuals, schematics:** [docs/hardware/](docs/hardware/README.md)
+- **Learning library** (study pages, diagrams, design docs): [docs/learning/](docs/learning/README.md)
 
 ## Objective
 
